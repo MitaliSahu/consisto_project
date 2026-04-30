@@ -79,3 +79,22 @@ body {
 /* Buttons & Inputs */
 .main-btn { background: var(--primary); color: white; border: none; padding: 16px 32px; border-radius: 16px; font-weight: 700; cursor: pointer; width: 100%; box-shadow: 0 10px 20px -5px var(--primary); }
 input, select { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 15px; border-radius: 12px; width: 100%; box-sizing: border-box; }
+/* --- ADD TO THE BOTTOM OF style.css --- */
+
+.delete-task-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-top: 15px;
+    width: 100%;
+    transition: 0.2s;
+}
+
+.delete-task-btn:hover {
+    background: #ef4444;
+    color: white;
+}
