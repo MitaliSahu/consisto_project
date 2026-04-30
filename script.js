@@ -23,12 +23,24 @@ function toggleTheme() {
 function addGoal() {
     const title = document.getElementById('goalTitle').value;
     const freq = document.getElementById('goalFreq').value;
-    if(!title) return;
+    if(!title) {
+        alert("Please name your milestone!");
+        return;
+    }
 
-    goals.push({ id: Date.now(), title, freq, checks: {}, created: new Date().toLocaleDateString() });
+    goals.push({ 
+        id: Date.now(), 
+        title: title, 
+        freq: freq, 
+        checks: {}, 
+        created: new Date().toLocaleDateString() 
+    });
+    
     localStorage.setItem('consisto_data', JSON.stringify(goals));
     renderDashboard();
     closeModal();
+    // Clear the input for next time
+    document.getElementById('goalTitle').value = ''; 
 }
 
 function calculateProgress(goal) {
@@ -48,13 +60,16 @@ function renderDashboard() {
         div.className = 'goal-card';
         div.onclick = () => viewGoal(goal.id); 
         div.innerHTML = `
-            <div style="display:flex; justify-content:space-between">
-                <strong>${goal.title}</strong>
-                <span style="font-size:12px; color:var(--primary)">${progress}%</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-            <small style="opacity:0.6; margin-top:10px; display:block">Target: ${goal.freq}</small>
-        `;
+        <div style="display:flex; justify-content:space-between; align-items: center;">
+         <strong>${goal.title}</strong>
+         <button onclick="deleteGoal(${goal.id}, event)" style="background:rgba(239,68,68,0.2); color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:10px;">Delete</button>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+        <div style="display:flex; justify-content:space-between; margin-top:10px;">
+         <small style="opacity:0.6">Target: ${goal.freq}</small>
+         <small style="color:var(--primary)">${progress}%</small>
+        </div>
+    `;
         container.appendChild(div);
     });
 }
@@ -92,3 +107,11 @@ function toggleCheck(index) {
 
 function openModal() { document.getElementById('task-modal').style.display = 'flex'; }
 function closeModal() { document.getElementById('task-modal').style.display = 'none'; }
+function deleteGoal(id, event) {
+    event.stopPropagation(); // Prevents opening the goal detail when clicking delete
+    if(confirm("Are you sure you want to remove this milestone?")) {
+        goals = goals.filter(g => g.id !== id);
+        localStorage.setItem('consisto_data', JSON.stringify(goals));
+        renderDashboard();
+    }
+}
