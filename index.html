@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consisto Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body data-theme="blue">
+
+    <div class="global-controls">
+        <button onclick="toggleTheme()" id="themeBtn">🌙 Deep Space</button>
+    </div>
+
+    <!-- HOME PAGE -->
+    <section id="page-home" class="page active">
+        <div class="hero">
+            <img src="https://illustrations.popsy.co/white/abstract-art-4.svg" class="hero-img" alt="Consisto Art">
+            <h1>CONSISTO</h1>
+            <p style="opacity: 0.7; font-size: 1.2rem;">The Architect of Your Habits.</p>
+            <button class="main-btn" onclick="showPage('page-login')" style="max-width: 200px;">Begin Journey</button>
+        </div>
+    </section>
+
+    <!-- LOGIN PAGE -->
+    <section id="page-login" class="page">
+        <div class="auth-box">
+            <img src="https://illustrations.popsy.co/white/key.svg" style="width: 80px; margin-bottom: 20px;" alt="Login">
+            <h2 style="margin-top:0">Welcome Back</h2>
+            <input type="text" id="username" placeholder="Username / Student ID">
+            <input type="password" placeholder="Passcode">
+            <button class="main-btn" onclick="handleAuth()">Access Dashboard</button>
+        </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page">
+        <div class="stats-card">
+            <h2 style="margin-top:0">Focus Summary</h2>
+            <p><span id="active-count" style="font-size: 2rem; font-weight: 900; color: var(--primary);">0</span> Ongoing Milestones</p>
+        </div>
+        
+        <button class="main-btn" onclick="openModal()" style="max-width: 300px; margin-bottom: 20px;">+ Create New Objective</button>
+
+        <div id="goals-container" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+    </section>
+
+    <!-- DETAIL PAGE -->
+    <section id="page-detail" class="page">
+        <div style="width:100%; max-width:700px; text-align:left;">
+            <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
+            <h1 id="detail-title" style="margin: 20px 0;">Goal</h1>
+        </div>
+        <div id="checkbox-container" class="checkbox-grid"></div>
+    </section>
+
+    <!-- MODAL -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">Define Milestone</h3>
+            <input type="text" id="goalTitle" placeholder="What are you mastering?">
+            <select id="goalFreq">
+                <option value="daily">Daily Discipline</option>
+                <option value="monthly">Monthly Progress</option>
+                <option value="yearly">Long-term Vision</option>
+            </select>
+            <button class="main-btn" onclick="addGoal()">Initialize</button>
+            <button class="cancel-btn" onclick="closeModal()">Discard</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
