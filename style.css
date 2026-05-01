@@ -27,7 +27,7 @@ body {
     transition: 0.4s ease;
 }
 
-/* Page Transitions and Layout */
+/* Page Layouts */
 .page {
     display: none;
     padding: 60px 20px;
@@ -47,6 +47,26 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Global Controls - Increased Theme Icon Size */
+.global-controls {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 1000;
+}
+
+#themeBtn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 15px 25px; /* Increased padding */
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.2rem; /* Larger icon/text for visibility */
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+}
+
 /* UI Containers */
 .stats-card, .goal-card, .auth-box, .cycle-box {
     background: var(--card);
@@ -58,6 +78,13 @@ body {
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
     backdrop-filter: blur(8px);
+}
+
+/* Login Layout Fix - Stacked Inputs */
+.auth-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Buttons */
@@ -87,6 +114,15 @@ body {
     font-weight: 600;
 }
 
+/* Large Checkboxes for Habits */
+.check-item input[type="checkbox"] {
+    width: 35px; /* Significantly increased size */
+    height: 35px; /* Significantly increased size */
+    cursor: pointer;
+    accent-color: var(--primary);
+    margin-bottom: 10px;
+}
+
 /* Standalone Note System Editor */
 .note-title-input {
     font-size: 2.5rem;
@@ -109,7 +145,6 @@ body {
     font-size: 1.1rem;
     line-height: 1.6;
     font-family: inherit;
-    resize: vertical;
 }
 
 /* Habit Calendar Grid */
@@ -147,7 +182,7 @@ body {
     transform: scale(1.05);
 }
 
-/* Formatting for Branding */
+/* Branding */
 .hero h1 {
     font-size: 4.5rem;
     font-weight: 900;
@@ -158,7 +193,7 @@ body {
     color: transparent;
 }
 
-/* Modals and Theme */
+/* Modals */
 .modal {
     display: none;
     position: fixed;

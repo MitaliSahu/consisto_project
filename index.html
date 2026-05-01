@@ -9,32 +9,32 @@
 </head>
 <body data-theme="blue">
 
-    <!-- Global Controls -->
     <div class="global-controls">
         <button onclick="toggleTheme()" id="themeBtn">🌌 Deep Space</button>
     </div>
 
-    <!-- 1. LANDING PAGE -->
+    <!-- LANDING & LOGIN -->
     <section id="page-home" class="page active">
         <div class="hero">
+            <img src="https://illustrations.popsy.co/white/abstract-art-4.svg" class="hero-img" alt="Consisto Logo" style="width: 220px; margin-bottom: 20px;">
             <h1>CONSISTO</h1>
             <p style="opacity: 0.7;">The Architect of Your Habits.</p>
             <button class="main-btn" onclick="showPage('page-login')">Begin Journey</button>
         </div>
     </section>
 
-    <!-- 2. LOGIN PAGE (Fixed for Access Dashboard) -->
     <section id="page-login" class="page">
         <div class="auth-box">
-            <h2 style="margin-top:0">Welcome Back</h2>
-            <!-- Critical: ID must be 'username' for script.js to find it -->
-            <input type="text" id="username" placeholder="Username / Student ID">
-            <input type="password" id="passcode" placeholder="Passcode">
-            <button class="main-btn" onclick="handleAuth()">Access Dashboard</button>
+            <h2>Welcome Back</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+                <input type="text" id="username" placeholder="Username / Student ID">
+                <input type="password" id="passcode" placeholder="Passcode">
+            </div>
+            <button class="main-btn" onclick="handleAuth()" style="margin-top: 20px; width: 100%;">Access Dashboard</button>
         </div>
     </section>
 
-    <!-- 3. DASHBOARD (Fixed to remove multiple occurrences) -->
+    <!-- DASHBOARD -->
     <section id="page-dashboard" class="page">
         <div class="stats-card">
             <h2>Focus Summary</h2>
@@ -47,31 +47,16 @@
             <button class="main-btn" onclick="showPage('page-notes')" style="flex: 1; background: #8b5cf6;">📓 Notes</button>
         </div>
 
-        <!-- Goals will render here after sanitization deletes extras -->
         <div id="goals-container" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+
+        <!-- RESTORED: Archive Section -->
+        <details class="archive-section" style="width: 100%; max-width: 600px; margin-top: 20px;">
+            <summary style="cursor: pointer; font-weight: 700; color: var(--primary); padding: 10px;">View Archive History</summary>
+            <div id="archive-container" style="padding: 10px;"></div>
+        </details>
     </section>
 
-    <!-- 4. STANDALONE NOTES LIST -->
-    <section id="page-notes" class="page">
-        <div style="width:100%; max-width:700px; text-align:left;">
-            <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
-            <h1 style="margin: 20px 0;">My Notes</h1>
-            <button class="main-btn" onclick="openModal('new-note-modal')">+ Create New Note</button>
-            <div id="notes-list-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;"></div>
-        </div>
-    </section>
-
-    <!-- 5. NOTE EDITOR (Full Page) -->
-    <section id="page-note-view" class="page">
-        <div style="width:100%; max-width:800px; text-align:left;">
-            <button class="back-btn" onclick="showPage('page-notes')">← All Notes</button>
-            <input type="text" id="viewNoteTitle" class="note-title-input" placeholder="Note Title">
-            <textarea id="viewNoteContent" class="note-textarea" placeholder="Start writing..."></textarea>
-            <button class="main-btn" onclick="saveNoteChanges()" style="margin-top: 20px;">Save Changes</button>
-        </div>
-    </section>
-
-    <!-- 6. TO-DO LIST -->
+    <!-- RESTORED: To-Do List -->
     <section id="page-todo" class="page">
         <div style="width:100%; max-width:600px; text-align:left;">
             <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
@@ -84,11 +69,36 @@
         </div>
     </section>
 
-    <!-- 7. GOAL DETAIL (Single Standard Block) -->
+    <!-- NOTES & EDITOR (Retained) -->
+    <section id="page-notes" class="page">
+        <div style="width:100%; max-width:700px; text-align:left;">
+            <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
+            <h1>My Notes</h1>
+            <button class="main-btn" onclick="openModal('new-note-modal')">+ Create New Note</button>
+            <div id="notes-list-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;"></div>
+        </div>
+    </section>
+
+    <section id="page-note-view" class="page">
+        <div style="width:100%; max-width:800px; text-align:left;">
+            <button class="back-btn" onclick="showPage('page-notes')">← All Notes</button>
+            <input type="text" id="viewNoteTitle" class="note-title-input">
+            <textarea id="viewNoteContent" class="note-textarea"></textarea>
+            <button class="main-btn" onclick="saveNoteChanges()">Save Changes</button>
+        </div>
+    </section>
+
+    <!-- GOAL DETAIL -->
     <section id="page-detail" class="page">
         <div style="width:100%; max-width:850px; text-align:left;">
             <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
-            <h1 id="detail-title">Goal</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+                <h1 id="detail-title">Goal</h1>
+                <div style="display: flex; gap: 10px;">
+                    <button class="main-btn" onclick="openEditModal()" style="background: var(--accent);">Edit</button>
+                    <button class="main-btn" onclick="archiveCurrentGoal()" style="background: #10b981;">Complete</button>
+                </div>
+            </div>
         </div>
         <div id="multi-cycle-container" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 40px;"></div>
     </section>
@@ -97,7 +107,7 @@
     <div id="task-modal" class="modal">
         <div class="modal-content">
             <h3>New Objective</h3>
-            <input type="text" id="goalTitle" placeholder="Habit Title">
+            <input type="text" id="goalTitle" placeholder="Title">
             <select id="goalFreq">
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -109,10 +119,26 @@
         </div>
     </div>
 
+    <!-- RESTORED: Edit Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Objective</h3>
+            <input type="text" id="editGoalTitle">
+            <select id="editGoalFreq">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+            </select>
+            <button class="main-btn" onclick="saveGoalEdit()">Save Changes</button>
+            <button class="cancel-btn" onclick="closeModal('edit-modal')">Cancel</button>
+        </div>
+    </div>
+
     <div id="new-note-modal" class="modal">
         <div class="modal-content">
             <h3>New Note</h3>
-            <input type="text" id="newNoteTitle" placeholder="User Defined Title">
+            <input type="text" id="newNoteTitle" placeholder="Note Title">
             <button class="main-btn" onclick="createNewNote()">Create</button>
             <button class="cancel-btn" onclick="closeModal('new-note-modal')">Cancel</button>
         </div>
