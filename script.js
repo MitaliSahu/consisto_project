@@ -1,10 +1,13 @@
 let goals = JSON.parse(localStorage.getItem('consisto_data')) || [];
+let archivedGoals = JSON.parse(localStorage.getItem('consisto_archive')) || [];
+let todos = JSON.parse(localStorage.getItem('consisto_todos')) || [];
 let currentGoalId = null;
 
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
     if(pageId === 'page-dashboard') renderDashboard();
+    if(pageId === 'page-todo') renderTodoList();
 }
 
 function handleAuth() {
@@ -18,6 +21,7 @@ function toggleTheme() {
     document.getElementById('themeBtn').innerText = current === 'blue' ? '🌙 Dark Rose' : '🌌 Deep Space';
 }
 
+/* OBJECTIVE LOGIC */
 function addGoal() {
     const title = document.getElementById('goalTitle').value;
     const freq = document.getElementById('goalFreq').value;
@@ -30,7 +34,9 @@ function addGoal() {
 
 function renderDashboard() {
     const container = document.getElementById('goals-container');
+    const archiveContainer = document.getElementById('archive-container');
     container.innerHTML = '';
+    archiveContainer.innerHTML = '';
     document.getElementById('active-count').innerText = goals.length;
     
     goals.forEach(goal => {
@@ -54,37 +60,81 @@ function renderDashboard() {
         `;
         container.appendChild(div);
     });
+
+    archivedGoals.forEach(goal => {
+        const div = document.createElement('div');
+        div.className = 'archived-card';
+        div.innerHTML = `<span>${goal.title}</span><small style="opacity:0.5">COMPLETED</small>`;
+        archiveContainer.appendChild(div);
+    });
 }
 
+/* NEW: TO-DO LIST LOGIC */
+function addTodo() {
+    const input = document.getElementById('todoInput');
+    if (!input.value.trim()) return;
+    todos.push({ id: Date.now(), text: input.value, completed: false });
+    input.value = '';
+    saveTodos();
+    renderTodoList();
+}
+
+function renderTodoList() {
+    const container = document.getElementById('todo-list-container');
+    container.innerHTML = '';
+    todos.forEach(todo => {
+        const div = document.createElement('div');
+        div.className = 'todo-item';
+        div.innerHTML = `
+            <div class="content">
+                <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
+                <span class="${todo.completed ? 'completed' : ''}">${todo.text}</span>
+            </div>
+            <button class="todo-delete-btn" onclick="deleteTodo(${todo.id})">Remove</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function toggleTodo(id) {
+    const todo = todos.find(t => t.id === id);
+    todo.completed = !todo.completed;
+    saveTodos();
+    renderTodoList();
+}
+
+function deleteTodo(id) {
+    todos = todos.filter(t => t.id !== id);
+    saveTodos();
+    renderTodoList();
+}
+
+function saveTodos() {
+    localStorage.setItem('consisto_todos', JSON.stringify(todos));
+}
+
+/* REUSE PREVIOUS CALENDAR/GOAL LOGIC */
 function viewGoal(id) {
     currentGoalId = id;
     const goal = goals.find(g => g.id === id);
     document.getElementById('detail-title').innerText = goal.title;
     const container = document.getElementById('checkbox-container');
     container.innerHTML = '';
-    
     const now = new Date();
-    const startDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay(); // 0 (Sun) to 6 (Sat)
-    // Convert Sun-Sat to Mon-Sun (0=Mon, 6=Sun)
+    const startDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
     const adjustedStart = startDay === 0 ? 6 : startDay - 1;
 
     if (goal.freq === 'daily') {
-        // 1. Add Month Title
         const monthTitle = document.createElement('div');
         monthTitle.className = 'month-title';
         monthTitle.innerText = now.toLocaleString('default', { month: 'long', year: 'numeric' });
         container.appendChild(monthTitle);
-
-        // 2. Add Day Headers (Mon - Sun)
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        days.forEach(day => {
+        ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(day => {
             const dayHead = document.createElement('div');
             dayHead.className = 'calendar-header-row';
             dayHead.innerText = day;
             container.appendChild(dayHead);
         });
-
-        // 3. Add Empty Slots for alignment
         for (let i = 0; i < adjustedStart; i++) {
             const empty = document.createElement('div');
             empty.className = 'empty-slot';
@@ -122,9 +172,18 @@ function toggleCheck(index) {
     localStorage.setItem('consisto_data', JSON.stringify(goals));
 }
 
+function archiveCurrentGoal() {
+    const index = goals.findIndex(g => g.id === currentGoalId);
+    const archivedGoal = goals.splice(index, 1)[0];
+    archivedGoals.push(archivedGoal);
+    localStorage.setItem('consisto_data', JSON.stringify(goals));
+    localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+    showPage('page-dashboard');
+}
+
 function deleteGoal(id, event) {
     event.stopPropagation();
-    if(confirm("Permanently delete this milestone?")) {
+    if(confirm("Delete this milestone?")) {
         goals = goals.filter(g => g.id !== id);
         localStorage.setItem('consisto_data', JSON.stringify(goals));
         renderDashboard();
@@ -133,4 +192,4 @@ function deleteGoal(id, event) {
 
 function openModal() { document.getElementById('task-modal').style.display = 'flex'; }
 function closeModal() { document.getElementById('task-modal').style.display = 'none'; }
-window.onload = () => { if(goals.length) renderDashboard(); };
+window.onload = () => { if(goals.length || archivedGoals.length) renderDashboard(); };

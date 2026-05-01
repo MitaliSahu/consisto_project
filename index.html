@@ -40,15 +40,44 @@
             <h2 style="margin-top:0">Focus Summary</h2>
             <p><span id="active-count" style="font-size: 2rem; font-weight: 900; color: var(--primary);">0</span> Ongoing Milestones</p>
         </div>
-        <button class="main-btn" onclick="openModal()" style="max-width: 300px; margin-bottom: 20px;">+ Create New Objective</button>
+        
+        <div style="display: flex; gap: 10px; width: 100%; max-width: 600px; margin-bottom: 20px;">
+            <button class="main-btn" onclick="openModal()" style="flex: 2;">+ Create Objective</button>
+            <button class="main-btn" onclick="showPage('page-todo')" style="flex: 1; background: var(--accent);">📝 To-Do List</button>
+        </div>
+
         <div id="goals-container" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+
+        <!-- ARCHIVE SECTION -->
+        <div style="margin-top: 50px; width: 100%; max-width: 600px; opacity: 0.7;">
+            <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 10px;">Archive History</h3>
+            <div id="archive-container"></div>
+        </div>
+    </section>
+
+    <!-- NEW: TO-DO LIST PAGE -->
+    <section id="page-todo" class="page">
+        <div style="width:100%; max-width:600px; text-align:left;">
+            <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
+            <h1 style="margin: 20px 0;">To-Do List</h1>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="todoInput" placeholder="Enter a task..." style="margin:0;">
+                <button class="main-btn" onclick="addTodo()" style="max-width: 80px;">Add</button>
+            </div>
+            
+            <div id="todo-list-container"></div>
+        </div>
     </section>
 
     <!-- DETAIL PAGE -->
     <section id="page-detail" class="page">
         <div style="width:100%; max-width:850px; text-align:left;">
             <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
-            <h1 id="detail-title" style="margin: 20px 0;">Goal</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+                <h1 id="detail-title" style="margin:0;">Goal</h1>
+                <button class="main-btn" onclick="archiveCurrentGoal()" style="max-width: 150px; background: #10b981;">Archive Goal</button>
+            </div>
         </div>
         <div id="checkbox-container" class="checkbox-grid"></div>
     </section>
@@ -59,7 +88,7 @@
             <h3 style="margin-top:0">Define Milestone</h3>
             <input type="text" id="goalTitle" placeholder="What are you mastering?">
             <select id="goalFreq">
-                <option value="daily">Daily (28 Days / 4 Weeks)</option>
+                <option value="daily">Daily (Calendar Grid)</option>
                 <option value="weekly">Weekly (Mon - Sun)</option>
                 <option value="monthly">Monthly (Jan - Dec)</option>
                 <option value="yearly">Yearly (10 Years)</option>

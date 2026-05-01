@@ -10,9 +10,20 @@ body {
     font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
     margin: 0; transition: all 0.4s; backdrop-filter: blur(10px);
 }
+
 .page { display: none; padding: 40px 20px; min-height: 100vh; flex-direction: column; align-items: center; box-sizing: border-box; }
 .page.active { display: flex; animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* MAIN GOAL BANNER */
+.main-goal-banner {
+    text-align: center;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 40px;
+    padding: 20px;
+    background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+}
 
 .global-controls { position: fixed; top: 20px; right: 20px; z-index: 1000; }
 #themeBtn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 12px 20px; border-radius: 50px; cursor: pointer; font-weight: 600; }
@@ -21,47 +32,63 @@ body {
 .progress-bar { height: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 15px; }
 .progress-fill { height: 100%; background: var(--primary); border-radius: 10px; transition: width 0.5s ease; }
 
-/* 7-COLUMN CALENDAR GRID */
-.checkbox-grid { 
-    display: grid; 
-    grid-template-columns: repeat(7, 1fr); /* Strictly 7 columns */
-    gap: 10px; 
-    width: 100%; 
-    max-width: 900px; 
-    margin-top: 20px; 
-}
-
-.check-item { 
-    background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; 
-    border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; text-align: center;
-}
+.checkbox-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; width: 100%; max-width: 900px; margin-top: 20px; }
+.check-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; text-align: center; }
 .check-item input[type="checkbox"] { width: 28px; height: 28px; cursor: pointer; accent-color: var(--primary); margin-bottom: 5px; }
 
-/* Calendar Headers */
-.calendar-header-row { 
-    grid-column: span 1; 
-    font-weight: 900; 
-    color: var(--primary); 
-    text-align: center; 
-    padding: 10px 0; 
-    font-size: 0.8rem; 
-    text-transform: uppercase;
-}
-
-.month-title { 
-    grid-column: 1 / -1; 
-    font-weight: 900; 
-    color: var(--text); 
-    padding: 20px 0 10px 0; 
-    font-size: 1.8rem; 
-    text-align: center;
-}
-
-/* Empty slots for calendar alignment */
+.calendar-header-row { font-weight: 900; color: var(--primary); text-align: center; padding: 10px 0; font-size: 0.8rem; text-transform: uppercase; }
+.month-title { grid-column: 1 / -1; font-weight: 900; color: var(--text); padding: 20px 0 10px 0; font-size: 1.8rem; text-align: center; }
 .empty-slot { background: transparent; border: none; }
+
+.sub-goal-item { display: flex; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); }
+.sub-goal-item input { width: 20px !important; height: 20px !important; margin: 0 15px 0 0 !important; cursor: pointer; }
+.sub-goal-item span.done { text-decoration: line-through; opacity: 0.5; }
+
+.archived-card { background: var(--card); border: 1px dashed var(--border); padding: 15px 20px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
 .main-btn { background: var(--primary); color: white; border: none; padding: 16px 32px; border-radius: 16px; font-weight: 700; cursor: pointer; width: 100%; }
 .delete-task-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; }
 .modal-content { background: #1e293b; padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; }
 input, select { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 15px; border-radius: 12px; width: 100%; margin: 10px 0; }
+/* ... Keep all your previous CSS ... */
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    justify-content: space-between;
+}
+
+.todo-item .content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.todo-item input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+.todo-item span.completed {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.todo-delete-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+.todo-delete-btn:hover { opacity: 1; }
