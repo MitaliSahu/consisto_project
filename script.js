@@ -17,11 +17,12 @@ function handleAuth() {
 function toggleTheme() {
     const body = document.body;
     const current = body.getAttribute('data-theme');
-    body.setAttribute('data-theme', current === 'blue' ? 'pink' : 'blue');
-    document.getElementById('themeBtn').innerText = current === 'blue' ? '🌙 Dark Rose' : '🌌 Deep Space';
+    const next = current === 'blue' ? 'pink' : 'blue';
+    body.setAttribute('data-theme', next);
+    document.getElementById('themeBtn').innerText = next === 'blue' ? '🌙 Dark Rose' : '🌌 Deep Space';
 }
 
-/* OBJECTIVE LOGIC */
+/* OBJECTIVES LOGIC */
 function addGoal() {
     const title = document.getElementById('goalTitle').value;
     const freq = document.getElementById('goalFreq').value;
@@ -61,21 +62,62 @@ function renderDashboard() {
         container.appendChild(div);
     });
 
-    archivedGoals.forEach(goal => {
+    archivedGoals.forEach((goal, index) => {
         const div = document.createElement('div');
         div.className = 'archived-card';
-        div.innerHTML = `<span>${goal.title}</span><small style="opacity:0.5">COMPLETED</small>`;
+        div.innerHTML = `
+            <div>
+                <strong>${goal.title}</strong>
+                <small style="display:block; opacity:0.5;">${goal.freq.toUpperCase()}</small>
+            </div>
+            <button class="todo-delete-btn" onclick="deleteSingleArchive(${index})" style="background:none; border:none; color:#ef4444; cursor:pointer;">Delete</button>
+        `;
         archiveContainer.appendChild(div);
     });
 }
 
-/* NEW: TO-DO LIST LOGIC */
+/* NEW CYCLE LOGIC */
+function startNewCycle() {
+    const goal = goals.find(g => g.id === currentGoalId);
+    if (!goal) return;
+
+    if (confirm(`Start a new cycle? Current progress will be saved to Archive.`)) {
+        const snapshot = {
+            title: `${goal.title} (Snapshot: ${new Date().toLocaleDateString()})`,
+            freq: goal.freq,
+            completedAt: new Date().toISOString()
+        };
+        archivedGoals.unshift(snapshot);
+        localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+
+        goal.checks = {}; // Reset
+        localStorage.setItem('consisto_data', JSON.stringify(goals));
+        viewGoal(currentGoalId);
+    }
+}
+
+/* ARCHIVE CLEANUP */
+function clearFullArchive() {
+    if(confirm("Clear all archived history?")) {
+        archivedGoals = [];
+        localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+        renderDashboard();
+    }
+}
+
+function deleteSingleArchive(index) {
+    archivedGoals.splice(index, 1);
+    localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+    renderDashboard();
+}
+
+/* TO-DO LOGIC */
 function addTodo() {
     const input = document.getElementById('todoInput');
     if (!input.value.trim()) return;
     todos.push({ id: Date.now(), text: input.value, completed: false });
     input.value = '';
-    saveTodos();
+    localStorage.setItem('consisto_todos', JSON.stringify(todos));
     renderTodoList();
 }
 
@@ -86,11 +128,11 @@ function renderTodoList() {
         const div = document.createElement('div');
         div.className = 'todo-item';
         div.innerHTML = `
-            <div class="content">
+            <div style="display:flex; align-items:center; gap:10px;">
                 <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
                 <span class="${todo.completed ? 'completed' : ''}">${todo.text}</span>
             </div>
-            <button class="todo-delete-btn" onclick="deleteTodo(${todo.id})">Remove</button>
+            <button onclick="deleteTodo(${todo.id})" style="background:none; border:none; color:#ef4444; cursor:pointer;">Remove</button>
         `;
         container.appendChild(div);
     });
@@ -99,21 +141,17 @@ function renderTodoList() {
 function toggleTodo(id) {
     const todo = todos.find(t => t.id === id);
     todo.completed = !todo.completed;
-    saveTodos();
+    localStorage.setItem('consisto_todos', JSON.stringify(todos));
     renderTodoList();
 }
 
 function deleteTodo(id) {
     todos = todos.filter(t => t.id !== id);
-    saveTodos();
+    localStorage.setItem('consisto_todos', JSON.stringify(todos));
     renderTodoList();
 }
 
-function saveTodos() {
-    localStorage.setItem('consisto_todos', JSON.stringify(todos));
-}
-
-/* REUSE PREVIOUS CALENDAR/GOAL LOGIC */
+/* CALENDAR HELPERS */
 function viewGoal(id) {
     currentGoalId = id;
     const goal = goals.find(g => g.id === id);
@@ -148,7 +186,7 @@ function viewGoal(id) {
         item.className = 'check-item';
         item.innerHTML = `
             <input type="checkbox" ${goal.checks[index] ? 'checked' : ''} onchange="toggleCheck(${index})">
-            <span style="font-weight:bold;">${label}</span>
+            <span>${label}</span>
         `;
         container.appendChild(item);
     });
@@ -175,7 +213,7 @@ function toggleCheck(index) {
 function archiveCurrentGoal() {
     const index = goals.findIndex(g => g.id === currentGoalId);
     const archivedGoal = goals.splice(index, 1)[0];
-    archivedGoals.push(archivedGoal);
+    archivedGoals.unshift(archivedGoal);
     localStorage.setItem('consisto_data', JSON.stringify(goals));
     localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
     showPage('page-dashboard');

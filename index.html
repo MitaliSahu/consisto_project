@@ -48,24 +48,25 @@
 
         <div id="goals-container" style="width:100%; display:flex; flex-direction:column; align-items:center;"></div>
 
-        <!-- ARCHIVE SECTION -->
-        <div style="margin-top: 50px; width: 100%; max-width: 600px; opacity: 0.7;">
-            <h3 style="border-bottom: 1px solid var(--border); padding-bottom: 10px;">Archive History</h3>
-            <div id="archive-container"></div>
+        <!-- UPDATED ARCHIVE SECTION -->
+        <div class="archive-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 15px; padding-bottom: 10px;">
+                <h3 style="margin:0;">Archive History</h3>
+                <button class="delete-task-btn" onclick="clearFullArchive()" style="font-size: 11px; padding: 4px 8px;">Clear All</button>
+            </div>
+            <div id="archive-container" class="scroll-container"></div>
         </div>
     </section>
 
-    <!-- NEW: TO-DO LIST PAGE -->
+    <!-- TO-DO LIST PAGE -->
     <section id="page-todo" class="page">
         <div style="width:100%; max-width:600px; text-align:left;">
-            <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
+            <button class="back-btn" onclick="showPage('page-dashboard')" style="background:none; border:1px solid var(--border); padding:8px 15px; border-radius:8px; cursor:pointer; color:var(--text);">← Dashboard</button>
             <h1 style="margin: 20px 0;">To-Do List</h1>
-            
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <input type="text" id="todoInput" placeholder="Enter a task..." style="margin:0;">
-                <button class="main-btn" onclick="addTodo()" style="max-width: 80px;">Add</button>
+                <button class="main-btn" onclick="addTodo()" style="max-width: 80px; padding:0;">Add</button>
             </div>
-            
             <div id="todo-list-container"></div>
         </div>
     </section>
@@ -73,10 +74,13 @@
     <!-- DETAIL PAGE -->
     <section id="page-detail" class="page">
         <div style="width:100%; max-width:850px; text-align:left;">
-            <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
+            <button class="back-btn" onclick="showPage('page-dashboard')" style="background:none; border:1px solid var(--border); padding:8px 15px; border-radius:8px; cursor:pointer; color:var(--text);">← Dashboard</button>
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
-                <h1 id="detail-title" style="margin:0;">Goal</h1>
-                <button class="main-btn" onclick="archiveCurrentGoal()" style="max-width: 150px; background: #10b981;">Archive Goal</button>
+                <h1 id="detail-title">Goal</h1>
+                <div style="display: flex; gap: 10px;">
+                    <button class="main-btn" onclick="startNewCycle()" style="max-width: 130px; background: var(--accent); font-size: 14px;">New Cycle</button>
+                    <button class="main-btn" onclick="archiveCurrentGoal()" style="max-width: 130px; background: #10b981; font-size: 14px;">Archive</button>
+                </div>
             </div>
         </div>
         <div id="checkbox-container" class="checkbox-grid"></div>
@@ -94,7 +98,7 @@
                 <option value="yearly">Yearly (10 Years)</option>
             </select>
             <button class="main-btn" onclick="addGoal()">Initialize</button>
-            <button class="cancel-btn" onclick="closeModal()">Discard</button>
+            <button class="cancel-btn" onclick="closeModal()" style="background:none; border:none; color:var(--text); width:100%; margin-top:10px; cursor:pointer; opacity:0.6;">Discard</button>
         </div>
     </div>
 
