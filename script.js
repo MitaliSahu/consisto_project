@@ -6,8 +6,7 @@ let standaloneNotes = JSON.parse(localStorage.getItem('consisto_standalone_notes
 let currentGoalId = null;
 let currentNoteId = null;
 
-// --- 1. THE SANITIZATION & ID ENGINE ---
-// Standardizes IDs to keep only one block per cycle and prevent duplicates
+// --- 1. SANITIZATION & ID ENGINE (Prevents Duplicates) ---
 function generateCycleId(freq, date) {
     const d = new Date(date);
     if (freq === 'daily') return `Daily-${d.getFullYear()}-${d.getMonth() + 1}`;
@@ -63,7 +62,7 @@ function showPage(pageId) {
     if (pageId === 'page-todo') renderTodoList();
 }
 
-// --- 3. HABIT TRACKING & DASHBOARD ---
+// --- 3. DASHBOARD & HABIT TRACKING ---
 function checkAllCycles() {
     const now = new Date();
     goals.forEach(goal => {
@@ -116,9 +115,9 @@ function viewGoal(id) {
                 const h = document.createElement('div'); h.className = 'calendar-header-row'; h.innerText = d; grid.appendChild(h);
             });
             const parts = cycle.id.split('-');
-            const padding = new Date(parts[1], parts[2]-1, 1).getDay();
-            const adjPadding = padding === 0 ? 6 : padding - 1;
-            for (let i = 0; i < adjPadding; i++) grid.appendChild(document.createElement('div'));
+            const firstDay = new Date(parts[1], parts[2]-1, 1).getDay();
+            const padding = firstDay === 0 ? 6 : firstDay - 1;
+            for (let i = 0; i < padding; i++) grid.appendChild(document.createElement('div'));
         }
 
         const labels = generateLabels(goal.freq, cycle.id);
@@ -138,7 +137,70 @@ function viewGoal(id) {
     showPage('page-detail');
 }
 
-// --- 4. TO-DO LIST FEATURE ---
+// --- 4. ARCHIVE FEATURES ---
+function renderArchive() {
+    const container = document.getElementById('archive-container');
+    if (!container) return;
+    container.innerHTML = archivedGoals.length ? '' : '<p style="opacity:0.5; text-align:center;">No history yet.</p>';
+    archivedGoals.forEach((g, index) => {
+        const div = document.createElement('div');
+        div.className = 'goal-card';
+        div.style.opacity = '0.8';
+        div.innerHTML = `
+            <div style="flex-grow:1;">
+                <strong>${g.title}</strong><br>
+                <small>Completed: ${g.archivedAt}</small>
+            </div>
+            <button class="delete-task-btn" onclick="deleteArchiveItem(${index})">Delete</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function deleteArchiveItem(index) {
+    if (confirm("Delete this archive entry?")) {
+        archivedGoals.splice(index, 1);
+        localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+        renderArchive();
+    }
+}
+
+function clearFullArchive() {
+    if (confirm("Permanently delete ALL archive history?")) {
+        archivedGoals = [];
+        localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+        renderArchive();
+    }
+}
+
+// --- 5. EDIT & ARCHIVE HABIT ---
+function openEditModal() {
+    const goal = goals.find(g => g.id === currentGoalId);
+    document.getElementById('editGoalTitle').value = goal.title;
+    document.getElementById('editGoalFreq').value = goal.freq;
+    openModal('edit-modal');
+}
+
+function saveGoalEdit() {
+    const goal = goals.find(g => g.id === currentGoalId);
+    goal.title = document.getElementById('editGoalTitle').value;
+    goal.freq = document.getElementById('editGoalFreq').value;
+    goal.cycles = []; 
+    localStorage.setItem('consisto_data', JSON.stringify(goals));
+    closeModal('edit-modal');
+    showPage('page-dashboard');
+}
+
+function archiveCurrentGoal() {
+    const idx = goals.findIndex(g => g.id === currentGoalId);
+    const goal = goals.splice(idx, 1)[0];
+    archivedGoals.unshift({ ...goal, archivedAt: new Date().toLocaleDateString() });
+    localStorage.setItem('consisto_data', JSON.stringify(goals));
+    localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+    showPage('page-dashboard');
+}
+
+// --- 6. TO-DO & NOTES ---
 function addTodo() {
     const input = document.getElementById('todoInput');
     if (!input.value.trim()) return;
@@ -154,13 +216,13 @@ function renderTodoList() {
     container.innerHTML = '';
     todos.forEach(todo => {
         const div = document.createElement('div');
-        div.className = 'todo-item';
+        div.className = 'goal-card';
         div.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px;">
                 <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
-                <span class="${todo.completed ? 'completed' : ''}">${todo.text}</span>
+                <span style="${todo.completed ? 'text-decoration:line-through; opacity:0.5;' : ''}">${todo.text}</span>
             </div>
-            <button onclick="deleteTodo(${todo.id})" class="delete-task-btn">Delete</button>
+            <button class="delete-task-btn" onclick="deleteTodo(${todo.id})">Delete</button>
         `;
         container.appendChild(div);
     });
@@ -179,47 +241,6 @@ function deleteTodo(id) {
     renderTodoList();
 }
 
-// --- 5. EDIT & ARCHIVE ---
-function openEditModal() {
-    const goal = goals.find(g => g.id === currentGoalId);
-    document.getElementById('editGoalTitle').value = goal.title;
-    document.getElementById('editGoalFreq').value = goal.freq;
-    openModal('edit-modal');
-}
-
-function saveGoalEdit() {
-    const goal = goals.find(g => g.id === currentGoalId);
-    goal.title = document.getElementById('editGoalTitle').value;
-    goal.freq = document.getElementById('editGoalFreq').value;
-    goal.cycles = []; // Reset cycles to update frequency structure
-    localStorage.setItem('consisto_data', JSON.stringify(goals));
-    closeModal('edit-modal');
-    showPage('page-dashboard');
-}
-
-function archiveCurrentGoal() {
-    const idx = goals.findIndex(g => g.id === currentGoalId);
-    const goal = goals.splice(idx, 1)[0];
-    archivedGoals.push({ ...goal, archivedAt: new Date().toLocaleDateString() });
-    localStorage.setItem('consisto_data', JSON.stringify(goals));
-    localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
-    showPage('page-dashboard');
-}
-
-function renderArchive() {
-    const container = document.getElementById('archive-container');
-    if (!container) return;
-    container.innerHTML = archivedGoals.length ? '' : '<p style="opacity:0.5;">No history yet.</p>';
-    archivedGoals.forEach(g => {
-        const div = document.createElement('div');
-        div.className = 'goal-card';
-        div.style.opacity = '0.7';
-        div.innerHTML = `<strong>${g.title}</strong><br><small>Archived: ${g.archivedAt}</small>`;
-        container.appendChild(div);
-    });
-}
-
-// --- 6. STANDALONE NOTES ---
 function createNewNote() {
     const title = document.getElementById('newNoteTitle').value.trim();
     if (!title) return;

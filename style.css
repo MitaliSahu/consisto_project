@@ -47,7 +47,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Global Controls - Increased Theme Icon Size */
+/* Global Controls */
 .global-controls {
     position: fixed;
     top: 25px;
@@ -58,33 +58,72 @@ body {
 #themeBtn {
     background: var(--card);
     border: 1px solid var(--border);
-    padding: 15px 25px; /* Increased padding */
+    padding: 15px 25px;
     border-radius: 15px;
     cursor: pointer;
     font-weight: 700;
-    font-size: 1.2rem; /* Larger icon/text for visibility */
+    font-size: 1.2rem;
     box-shadow: var(--shadow);
     backdrop-filter: blur(8px);
 }
 
-/* UI Containers */
-.stats-card, .goal-card, .auth-box, .cycle-box {
+/* UI Containers & Scrollable Sections */
+.stats-card, .auth-box, .cycle-box, .archive-section {
     background: var(--card);
     width: 100%;
     max-width: 600px;
-    padding: 30px;
-    margin: 15px 0;
+    padding: 20px;
+    margin-bottom: 20px;
     border-radius: 20px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
     backdrop-filter: blur(8px);
 }
 
-/* Login Layout Fix - Stacked Inputs */
-.auth-box {
+.scroll-container {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 5px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
+}
+
+/* Custom Scrollbar for Chrome/Safari */
+.scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+/* Goal & Archive Cards - Layout Refinement */
+.goal-card {
+    background: white;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    padding: 20px;
+    margin: 10px 0;
+    border-radius: 15px;
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.goal-card:hover {
+    transform: scale(1.01);
+}
+
+/* Typography & Inputs */
+h1 { font-weight: 900; color: var(--primary); }
+
+input[type="text"], input[type="password"], select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: white;
+    box-sizing: border-box;
 }
 
 /* Buttons */
@@ -99,9 +138,19 @@ body {
     transition: 0.2s ease;
 }
 
-.main-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
+.delete-task-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.delete-task-btn:hover {
+    background: #ef4444;
+    color: white;
 }
 
 .back-btn {
@@ -111,58 +160,13 @@ body {
     border-radius: 8px;
     cursor: pointer;
     color: var(--text);
-    font-weight: 600;
 }
 
-/* Large Checkboxes for Habits */
-.check-item input[type="checkbox"] {
-    width: 35px; /* Significantly increased size */
-    height: 35px; /* Significantly increased size */
-    cursor: pointer;
-    accent-color: var(--primary);
-    margin-bottom: 10px;
-}
-
-/* Standalone Note System Editor */
-.note-title-input {
-    font-size: 2.5rem;
-    font-weight: 900;
-    border: none !important;
-    background: transparent !important;
-    margin: 20px 0;
-    width: 100%;
-    color: var(--primary);
-    outline: none;
-}
-
-.note-textarea {
-    width: 100%;
-    min-height: 600px;
-    padding: 25px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    font-size: 1.1rem;
-    line-height: 1.6;
-    font-family: inherit;
-}
-
-/* Habit Calendar Grid */
+/* Habit Grid & Large Checkboxes */
 .checkbox-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 12px;
-    width: 100%;
-    max-width: 900px;
-}
-
-.calendar-header-row {
-    font-weight: 900;
-    color: var(--primary);
-    text-align: center;
-    padding: 5px 0;
-    font-size: 0.75rem;
-    text-transform: uppercase;
 }
 
 .check-item {
@@ -173,24 +177,45 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: 0.2s;
 }
 
-.check-item.highlight {
-    border: 2.5px solid var(--primary);
-    background: rgba(99, 102, 241, 0.05);
-    transform: scale(1.05);
+.check-item input[type="checkbox"] {
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    accent-color: var(--primary);
+    margin-bottom: 5px;
+}
+
+/* Note Editor */
+.note-textarea {
+    width: 100%;
+    min-height: 600px;
+    padding: 25px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.note-title-input {
+    font-size: 2.5rem;
+    font-weight: 900;
+    border: none;
+    background: transparent;
+    color: var(--primary);
+    width: 100%;
+    outline: none;
 }
 
 /* Branding */
 .hero h1 {
     font-size: 4.5rem;
-    font-weight: 900;
     background: linear-gradient(to bottom right, var(--text), var(--primary));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    color: transparent;
 }
 
 /* Modals */
@@ -209,13 +234,4 @@ body {
     border-radius: 24px;
     width: 90%;
     max-width: 420px;
-}
-
-.delete-task-btn {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    padding: 6px 12px;
-    border-radius: 8px;
-    cursor: pointer;
 }
