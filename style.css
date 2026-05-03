@@ -27,7 +27,7 @@ body {
     transition: 0.4s ease;
 }
 
-/* Page Layouts */
+/* Page Transitions and Layout */
 .page {
     display: none;
     padding: 60px 20px;
@@ -47,7 +47,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Global Controls */
+/* Global Controls - Increased Theme Icon Size */
 .global-controls {
     position: fixed;
     top: 25px;
@@ -67,7 +67,7 @@ body {
     backdrop-filter: blur(8px);
 }
 
-/* UI Containers & Scrollable Sections */
+/* UI Containers & New Scrollable Sections */
 .stats-card, .auth-box, .cycle-box, .archive-section {
     background: var(--card);
     width: 100%;
@@ -97,7 +97,7 @@ body {
     border-radius: 10px;
 }
 
-/* Goal & Archive Cards - Layout Refinement */
+/* Goal & Archive Cards - Layout Beside Position */
 .goal-card {
     background: white;
     display: flex;
@@ -124,6 +124,7 @@ input[type="text"], input[type="password"], select {
     border: 1px solid var(--border);
     background: white;
     box-sizing: border-box;
+    font-family: inherit;
 }
 
 /* Buttons */
@@ -160,6 +161,7 @@ input[type="text"], input[type="password"], select {
     border-radius: 8px;
     cursor: pointer;
     color: var(--text);
+    font-weight: 600;
 }
 
 /* Habit Grid & Large Checkboxes */
@@ -167,6 +169,7 @@ input[type="text"], input[type="password"], select {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 12px;
+    width: 100%;
 }
 
 .check-item {
@@ -180,14 +183,14 @@ input[type="text"], input[type="password"], select {
 }
 
 .check-item input[type="checkbox"] {
-    width: 35px;
-    height: 35px;
+    width: 35px; /* Large markings */
+    height: 35px; /* Large markings */
     cursor: pointer;
     accent-color: var(--primary);
     margin-bottom: 5px;
 }
 
-/* Note Editor */
+/* Note Editor Specifics */
 .note-textarea {
     width: 100%;
     min-height: 600px;
@@ -196,6 +199,7 @@ input[type="text"], input[type="password"], select {
     border: 1px solid var(--border);
     font-size: 1.1rem;
     line-height: 1.6;
+    font-family: inherit;
     resize: vertical;
 }
 
@@ -207,15 +211,22 @@ input[type="text"], input[type="password"], select {
     color: var(--primary);
     width: 100%;
     outline: none;
+    margin-bottom: 10px;
 }
 
-/* Branding */
+/* Branding & Logo Support */
 .hero h1 {
     font-size: 4.5rem;
+    font-weight: 900;
     background: linear-gradient(to bottom right, var(--text), var(--primary));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.hero-img {
+    display: block;
+    margin: 0 auto 20px;
 }
 
 /* Modals */
@@ -234,4 +245,16 @@ input[type="text"], input[type="password"], select {
     border-radius: 24px;
     width: 90%;
     max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.cancel-btn {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-weight: 600;
+    padding: 5px;
 }

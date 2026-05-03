@@ -6,7 +6,19 @@ let standaloneNotes = JSON.parse(localStorage.getItem('consisto_standalone_notes
 let currentGoalId = null;
 let currentNoteId = null;
 
-// --- 1. SANITIZATION & ID ENGINE (Prevents Duplicates) ---
+// --- 1. OFFLINE APP SUPPORT (Service Worker) ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            console.log('Consisto Service Worker registered.');
+        }).catch(err => {
+            console.log('Service Worker registration failed:', err);
+        });
+    });
+}
+
+// --- 2. THE SANITIZATION & ID ENGINE ---
+// Standardizes IDs to keep only one block per cycle and prevent duplicates
 function generateCycleId(freq, date) {
     const d = new Date(date);
     if (freq === 'daily') return `Daily-${d.getFullYear()}-${d.getMonth() + 1}`;
@@ -37,7 +49,7 @@ function sanitizeHistory() {
     }
 }
 
-// --- 2. AUTH & NAVIGATION ---
+// --- 3. AUTH & NAVIGATION ---
 function handleAuth() {
     const userField = document.getElementById('username');
     if (userField && userField.value.trim() !== "") {
@@ -62,7 +74,7 @@ function showPage(pageId) {
     if (pageId === 'page-todo') renderTodoList();
 }
 
-// --- 3. DASHBOARD & HABIT TRACKING ---
+// --- 4. HABIT TRACKING & DASHBOARD ---
 function checkAllCycles() {
     const now = new Date();
     goals.forEach(goal => {
@@ -104,7 +116,7 @@ function viewGoal(id) {
     goal.cycles.forEach(cycle => {
         const cycleBox = document.createElement('div');
         cycleBox.className = 'cycle-box';
-        cycleBox.innerHTML = `<div class="cycle-header">${cycle.id}</div>`;
+        cycleBox.innerHTML = `<div class="cycle-header" style="font-weight:900; margin-bottom:15px; color:var(--primary);">${cycle.id}</div>`;
         
         const grid = document.createElement('div');
         grid.className = 'checkbox-grid';
@@ -112,7 +124,9 @@ function viewGoal(id) {
         if (goal.freq === 'daily') {
             const headers = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             headers.forEach(d => {
-                const h = document.createElement('div'); h.className = 'calendar-header-row'; h.innerText = d; grid.appendChild(h);
+                const h = document.createElement('div'); h.className = 'calendar-header-row'; h.innerText = d; 
+                h.style = "font-size:0.7rem; font-weight:900; text-align:center; opacity:0.5;";
+                grid.appendChild(h);
             });
             const parts = cycle.id.split('-');
             const firstDay = new Date(parts[1], parts[2]-1, 1).getDay();
@@ -124,7 +138,8 @@ function viewGoal(id) {
         labels.forEach((label, index) => {
             const item = document.createElement('div');
             item.className = 'check-item';
-            if (isToday(goal.freq, label)) item.classList.add('highlight');
+            if (isToday(goal.freq, label)) item.style.border = "2px solid var(--primary)";
+
             item.innerHTML = `
                 <input type="checkbox" ${cycle.checks[index] ? 'checked' : ''} onchange="toggleCycleCheck('${cycle.id}', ${index})">
                 <span style="font-weight:bold;">${label}</span>
@@ -137,7 +152,7 @@ function viewGoal(id) {
     showPage('page-detail');
 }
 
-// --- 4. ARCHIVE FEATURES ---
+// --- 5. ARCHIVE FEATURES ---
 function renderArchive() {
     const container = document.getElementById('archive-container');
     if (!container) return;
@@ -173,7 +188,7 @@ function clearFullArchive() {
     }
 }
 
-// --- 5. EDIT & ARCHIVE HABIT ---
+// --- 6. EDIT & ARCHIVE HABIT ---
 function openEditModal() {
     const goal = goals.find(g => g.id === currentGoalId);
     document.getElementById('editGoalTitle').value = goal.title;
@@ -200,7 +215,7 @@ function archiveCurrentGoal() {
     showPage('page-dashboard');
 }
 
-// --- 6. TO-DO & NOTES ---
+// --- 7. TO-DO & NOTES ---
 function addTodo() {
     const input = document.getElementById('todoInput');
     if (!input.value.trim()) return;
@@ -219,7 +234,7 @@ function renderTodoList() {
         div.className = 'goal-card';
         div.innerHTML = `
             <div style="display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
+                <input type="checkbox" style="width:20px; height:20px;" ${todo.completed ? 'checked' : ''} onchange="toggleTodo(${todo.id})">
                 <span style="${todo.completed ? 'text-decoration:line-through; opacity:0.5;' : ''}">${todo.text}</span>
             </div>
             <button class="delete-task-btn" onclick="deleteTodo(${todo.id})">Delete</button>
@@ -291,9 +306,13 @@ function deleteNote(id) {
     renderNotesList();
 }
 
-// --- 7. UTILITIES ---
+// --- 8. UTILITIES ---
 function generateLabels(freq, cycleId) {
-    if (freq === 'daily') return Array.from({ length: 31 }, (_, i) => i + 1);
+    if (freq === 'daily') {
+        const parts = cycleId.split('-');
+        const daysInMonth = new Date(parts[1], parts[2], 0).getDate();
+        return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    }
     if (freq === 'weekly') return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     if (freq === 'monthly') return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const startYear = parseInt(cycleId.split('-')[1]);
@@ -345,4 +364,9 @@ function toggleTheme() {
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-window.onload = () => { sanitizeHistory(); checkAllCycles(); renderDashboard(); renderArchive(); };
+window.onload = () => { 
+    sanitizeHistory(); 
+    checkAllCycles(); 
+    renderDashboard(); 
+    renderArchive(); 
+};
