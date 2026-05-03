@@ -1,15 +1,15 @@
 {
-  "name": "Consisto",
+  "name": "Consisto Pro",
   "short_name": "Consisto",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#f8fafc",
+  "theme_color": "#6366f1",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/1063/1063376.png",
+      "src": "https://illustrations.popsy.co/white/abstract-art-4.svg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/svg+xml"
     }
   ]
 }
