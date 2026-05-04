@@ -5,23 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consisto Pro</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Links the manifest for Offline/PWA support -->
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
-<body data-theme="blue">
+<body data-theme="blue" data-mode="light">
 
-    <!-- Inside the global-controls div -->
+    <!-- GLOBAL CONTROLS -->
     <div class="global-controls">
-         <button onclick="toggleTheme()" id="themeBtn">🌌 Deep Space</button>
-        <!-- New Install Button (Hidden by default) -->
-        <button id="installAppBtn" style="display:none; background: var(--accent); color: white; border: 1px solid var(--border); padding: 15px 25px; border-radius: 15px; cursor: pointer; font-weight: 700; font-size: 1rem; margin-left: 10px;">📲 Install App</button>
+        <button onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle Dark/Light">🌓</button>
+        <button onclick="toggleTheme()" id="themeBtn" title="Switch Theme Color">🌌 Deep Space</button>
+        <button id="installAppBtn" style="display:none;" class="pwa-btn">📲 Install</button>
+        <button onclick="handleLogout()" id="logoutBtn" style="display:none;" class="logout-btn" title="Logout">🚪</button>
     </div>
 
     <!-- 1. LANDING PAGE -->
     <section id="page-home" class="page active">
         <div class="hero">
-            <!-- Restored Consisto Logo -->
             <img src="https://illustrations.popsy.co/white/abstract-art-4.svg" class="hero-img" alt="Consisto Logo" style="width: 220px; margin-bottom: 20px;">
             <h1>CONSISTO</h1>
             <p style="opacity: 0.7;">The Architect of Your Habits.</p>
@@ -33,12 +32,11 @@
     <section id="page-login" class="page">
         <div class="auth-box">
             <h2>Welcome Back</h2>
-            <!-- Fixed Layout: Password beneath Username -->
-            <div style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+            <div style="display:flex; flex-direction:column; gap:15px; width:100%;">
                 <input type="text" id="username" placeholder="Username / Student ID">
                 <input type="password" id="passcode" placeholder="Passcode">
             </div>
-            <button class="main-btn" onclick="handleAuth()" style="margin-top: 20px; width: 100%;">Access Dashboard</button>
+            <button class="main-btn" onclick="handleAuth()" style="margin-top:20px; width:100%;">Access Dashboard</button>
         </div>
     </section>
 
@@ -49,25 +47,24 @@
             <p><span id="active-count">0</span> Ongoing Milestones</p>
         </div>
         
-        <!-- Navigation Hub -->
-        <div class="nav-hub" style="display: flex; gap: 10px; width: 100%; max-width: 600px; margin-bottom: 20px;">
-            <button class="main-btn" onclick="openModal('task-modal')" style="flex: 2;">+ Create Objective</button>
-            <button class="main-btn" onclick="showPage('page-todo')" style="flex: 1; background: var(--accent);">📝 To-Do</button>
-            <button class="main-btn" onclick="showPage('page-notes')" style="flex: 1; background: #8b5cf6;">📓 Notes</button>
+        <div class="nav-hub">
+            <button class="main-btn" onclick="openModal('task-modal')" style="flex:2;">+ Create Objective</button>
+            <button class="main-btn" onclick="showPage('page-todo')" style="flex:1; background:var(--accent);">📝 To-Do</button>
+            <button class="main-btn" onclick="showPage('page-notes')" style="flex:1; background:#8b5cf6;">📓 Notes</button>
         </div>
 
-        <!-- Scrollable Active Objectives Section -->
-        <details class="archive-section" open style="width: 100%; max-width: 600px;">
-            <summary style="cursor: pointer; font-weight: 700; color: var(--primary); padding: 10px;">Active Objectives</summary>
-            <div id="goals-container" class="scroll-container" style="max-height: 300px; overflow-y: auto; padding: 10px;"></div>
+        <!-- Active Objectives -->
+        <details class="archive-section" open style="width:100%; max-width:600px;">
+            <summary>Active Objectives</summary>
+            <div id="goals-container" class="scroll-container"></div>
         </details>
 
-        <!-- Scrollable Archive Section with Delete All Option -->
-        <details class="archive-section" style="width: 100%; max-width: 600px; margin-top: 20px;">
-            <summary style="cursor: pointer; font-weight: 700; color: var(--primary); padding: 10px;">View Archive History</summary>
-            <div style="padding: 10px;">
-                <button class="delete-task-btn" onclick="clearFullArchive()" style="width: 100%; margin-bottom: 10px;">Delete All History</button>
-                <div id="archive-container" class="scroll-container" style="max-height: 300px; overflow-y: auto;"></div>
+        <!-- Archive History -->
+        <details class="archive-section" style="width:100%; max-width:600px; margin-top:20px;">
+            <summary>View Archive History</summary>
+            <div style="padding:10px;">
+                <button class="delete-task-btn" onclick="clearFullArchive()" style="width:100%; margin-bottom:10px;">Delete All History</button>
+                <div id="archive-container" class="scroll-container"></div>
             </div>
         </details>
     </section>
@@ -77,7 +74,7 @@
         <div style="width:100%; max-width:600px;">
             <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
             <h1>To-Do List</h1>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
                 <input type="text" id="todoInput" placeholder="Enter a task...">
                 <button class="main-btn" onclick="addTodo()">Add</button>
             </div>
@@ -91,7 +88,7 @@
             <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
             <h1>My Notes</h1>
             <button class="main-btn" onclick="openModal('new-note-modal')">+ Create New Note</button>
-            <div id="notes-list-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;"></div>
+            <div id="notes-list-container"></div>
         </div>
     </section>
 
@@ -105,55 +102,66 @@
         </div>
     </section>
 
-    <!-- 7. GOAL DETAIL (Cycle Checks) -->
+    <!-- 7. GOAL DETAIL -->
     <section id="page-detail" class="page">
         <div style="width:100%; max-width:850px;">
             <button class="back-btn" onclick="showPage('page-dashboard')">← Dashboard</button>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
-                <h1 id="detail-title">Goal</h1>
-                <div style="display: flex; gap: 10px;">
-                    <button class="main-btn" onclick="openEditModal()" style="background: var(--accent);">Edit</button>
-                    <button class="main-btn" onclick="archiveCurrentGoal()" style="background: #10b981;">Complete</button>
+            <div class="detail-header">
+                <div>
+                    <h1 id="detail-title">Goal</h1>
+                    <div class="progress-bar-container">
+                        <div id="detail-progress-fill" class="progress-fill"></div>
+                    </div>
+                    <small id="detail-percentage">0% Completed</small>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="main-btn" onclick="openEditModal()" style="background:var(--accent);">Edit</button>
+                    <button class="main-btn" onclick="archiveCurrentGoal()" style="background:#10b981;">Complete</button>
                 </div>
             </div>
         </div>
-        <div id="multi-cycle-container" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 40px;"></div>
+        <div id="multi-cycle-container" class="detail-grid-view"></div>
     </section>
 
     <!-- MODALS -->
-    <!-- Create Objective Modal -->
     <div id="task-modal" class="modal">
         <div class="modal-content">
             <h3>New Objective</h3>
-            <input type="text" id="goalTitle" placeholder="Title">
-            <select id="goalFreq">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
+            <input type="text" id="goalTitle" placeholder="Objective Title">
+            <select id="goalFreq" onchange="toggleCustomFreqInput('goalFreq', 'customDaysContainer')">
+                <option value="daily">Daily (31 Days)</option>
+                <option value="weekly">Weekly (7 Days)</option>
+                <option value="monthly">Monthly (12 Months)</option>
+                <option value="yearly">Yearly (10 Years)</option>
+                <option value="custom">Custom Range</option>
             </select>
+            <div id="customDaysContainer" style="display:none;">
+                <input type="number" id="customDays" placeholder="Number of days (e.g. 15)" min="1">
+            </div>
             <button class="main-btn" onclick="addGoal()">Create</button>
             <button class="cancel-btn" onclick="closeModal('task-modal')">Cancel</button>
         </div>
     </div>
 
-    <!-- Edit Objective Modal -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
             <h3>Edit Objective</h3>
             <input type="text" id="editGoalTitle">
-            <select id="editGoalFreq">
+            <select id="editGoalFreq" onchange="toggleCustomFreqInput('editGoalFreq', 'editCustomDaysContainer')">
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
                 <option value="yearly">Yearly</option>
+                <option value="custom">Custom</option>
             </select>
+            <div id="editCustomDaysContainer" style="display:none;">
+                <input type="number" id="editCustomDays" placeholder="Number of days" min="1">
+            </div>
             <button class="main-btn" onclick="saveGoalEdit()">Save Changes</button>
             <button class="cancel-btn" onclick="closeModal('edit-modal')">Cancel</button>
         </div>
     </div>
 
-    <!-- Create Note Modal -->
     <div id="new-note-modal" class="modal">
         <div class="modal-content">
             <h3>New Note</h3>

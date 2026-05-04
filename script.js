@@ -6,7 +6,22 @@ let standaloneNotes = JSON.parse(localStorage.getItem('consisto_standalone_notes
 let currentGoalId = null;
 let currentNoteId = null;
 
-// --- 1. OFFLINE APP SUPPORT (Service Worker) ---
+// --- 1. SESSION & OFFLINE BOOT ---
+window.onload = () => {
+    // Persistent Login Check
+    const session = localStorage.getItem('consisto_session');
+    if (session) {
+        showPage('page-dashboard');
+    } else {
+        showPage('page-home');
+    }
+
+    sanitizeHistory();
+    checkAllCycles();
+    renderDashboard();
+    renderArchive();
+};
+
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
@@ -18,7 +33,6 @@ if ('serviceWorker' in navigator) {
 }
 
 // --- 2. THE SANITIZATION & ID ENGINE ---
-// Standardizes IDs to keep only one block per cycle and prevent duplicates
 function generateCycleId(freq, date) {
     const d = new Date(date);
     if (freq === 'daily') return `Daily-${d.getFullYear()}-${d.getMonth() + 1}`;
@@ -28,7 +42,7 @@ function generateCycleId(freq, date) {
     }
     if (freq === 'monthly') return `Monthly-${d.getFullYear()}`;
     if (freq === 'yearly') return `Decade-${Math.floor(d.getFullYear() / 10) * 10}`;
-    return 'Cycle';
+    return `Cycle-${freq}-${d.getFullYear()}`;
 }
 
 function sanitizeHistory() {
@@ -36,26 +50,28 @@ function sanitizeHistory() {
     goals.forEach(goal => {
         if (!goal.cycles) goal.cycles = [];
         const latestId = generateCycleId(goal.freq, new Date());
-        
-        // Keep only the cycle matching the current standardized ID
         const originalCount = goal.cycles.length;
         goal.cycles = goal.cycles.filter(c => c.id === latestId);
-        
         if (goal.cycles.length !== originalCount) changed = true;
     });
-    
-    if (changed) {
-        localStorage.setItem('consisto_data', JSON.stringify(goals));
-    }
+    if (changed) localStorage.setItem('consisto_data', JSON.stringify(goals));
 }
 
-// --- 3. AUTH & NAVIGATION ---
+// --- 3. AUTH, SESSION & NAVIGATION ---
 function handleAuth() {
     const userField = document.getElementById('username');
     if (userField && userField.value.trim() !== "") {
+        localStorage.setItem('consisto_session', userField.value.trim()); // Save Session
         showPage('page-dashboard');
     } else {
         alert("Please enter a Username to access the dashboard.");
+    }
+}
+
+function handleLogout() {
+    if (confirm("Are you sure you want to logout?")) {
+        localStorage.removeItem('consisto_session');
+        showPage('page-home');
     }
 }
 
@@ -64,9 +80,15 @@ function showPage(pageId) {
     const targetPage = document.getElementById(pageId);
     if (targetPage) targetPage.classList.add('active');
 
+    // Toggle Logout button visibility based on page
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.style.display = (pageId !== 'page-home' && pageId !== 'page-login') ? 'inline-block' : 'none';
+    }
+
     if (pageId === 'page-dashboard') {
-        sanitizeHistory(); 
-        checkAllCycles(); 
+        sanitizeHistory();
+        checkAllCycles();
         renderDashboard();
         renderArchive();
     }
@@ -74,7 +96,28 @@ function showPage(pageId) {
     if (pageId === 'page-todo') renderTodoList();
 }
 
-// --- 4. HABIT TRACKING & DASHBOARD ---
+// --- 4. THEME & DARK MODE ---
+function toggleDarkMode() {
+    const body = document.body;
+    const currentMode = body.getAttribute('data-mode') || 'light';
+    const nextMode = currentMode === 'light' ? 'dark' : 'light';
+    body.setAttribute('data-mode', nextMode);
+}
+
+function toggleTheme() {
+    const body = document.body;
+    const next = body.getAttribute('data-theme') === 'blue' ? 'pink' : 'blue';
+    body.setAttribute('data-theme', next);
+    const themeBtn = document.getElementById('themeBtn');
+    if (themeBtn) themeBtn.innerText = next === 'blue' ? '🌙 Dark Rose' : '🌌 Deep Space';
+}
+
+// --- 5. HABIT ENGINE (CUSTOM FREQ & PERCENTAGE) ---
+function toggleCustomFreqInput(selectId, containerId) {
+    const val = document.getElementById(selectId).value;
+    document.getElementById(containerId).style.display = val === 'custom' ? 'block' : 'none';
+}
+
 function checkAllCycles() {
     const now = new Date();
     goals.forEach(goal => {
@@ -85,6 +128,26 @@ function checkAllCycles() {
         }
     });
     localStorage.setItem('consisto_data', JSON.stringify(goals));
+}
+
+function addGoal() {
+    const title = document.getElementById('goalTitle').value.trim();
+    const freq = document.getElementById('goalFreq').value;
+    let customDays = null;
+
+    if (freq === 'custom') {
+        customDays = parseInt(document.getElementById('customDays').value);
+        if (!customDays || customDays < 1) {
+            alert("Please enter a valid number of days.");
+            return;
+        }
+    }
+
+    if (!title) return;
+    goals.push({ id: Date.now(), title, freq, customDays, cycles: [] });
+    checkAllCycles();
+    closeModal('task-modal');
+    renderDashboard();
 }
 
 function renderDashboard() {
@@ -98,7 +161,7 @@ function renderDashboard() {
         div.innerHTML = `
             <div onclick="viewGoal(${goal.id})" style="cursor:pointer; flex-grow:1;">
                 <strong style="font-size:1.2rem;">${goal.title}</strong>
-                <small style="display:block; opacity:0.6;">${goal.freq.toUpperCase()}</small>
+                <small style="display:block; opacity:0.6;">${goal.freq.toUpperCase()}${goal.customDays ? ' ('+goal.customDays+' Days)' : ''}</small>
             </div>
             <button class="delete-task-btn" onclick="deleteGoal(${goal.id}, event)">Delete</button>
         `;
@@ -106,10 +169,28 @@ function renderDashboard() {
     });
 }
 
+function updateProgress(goal) {
+    const cycle = goal.cycles[0];
+    if (!cycle) return;
+    
+    const labels = generateLabels(goal.freq, cycle.id, goal.customDays);
+    const total = labels.length;
+    const checked = Object.values(cycle.checks).filter(v => v === true).length;
+    const percent = total > 0 ? Math.round((checked / total) * 100) : 0;
+    
+    const fill = document.getElementById('detail-progress-fill');
+    const text = document.getElementById('detail-percentage');
+    if (fill) fill.style.width = percent + '%';
+    if (text) text.innerText = `${percent}% Completed`;
+}
+
 function viewGoal(id) {
     currentGoalId = id;
     const goal = goals.find(g => g.id === id);
     document.getElementById('detail-title').innerText = goal.title;
+    
+    updateProgress(goal); // Calculate %
+
     const container = document.getElementById('multi-cycle-container');
     container.innerHTML = '';
 
@@ -134,7 +215,7 @@ function viewGoal(id) {
             for (let i = 0; i < padding; i++) grid.appendChild(document.createElement('div'));
         }
 
-        const labels = generateLabels(goal.freq, cycle.id);
+        const labels = generateLabels(goal.freq, cycle.id, goal.customDays);
         labels.forEach((label, index) => {
             const item = document.createElement('div');
             item.className = 'check-item';
@@ -152,7 +233,15 @@ function viewGoal(id) {
     showPage('page-detail');
 }
 
-// --- 5. ARCHIVE FEATURES ---
+function toggleCycleCheck(cycleId, index) {
+    const goal = goals.find(g => g.id === currentGoalId);
+    const cycle = goal.cycles.find(c => c.id === cycleId);
+    cycle.checks[index] = !cycle.checks[index];
+    localStorage.setItem('consisto_data', JSON.stringify(goals));
+    updateProgress(goal);
+}
+
+// --- 6. ARCHIVE, TO-DO & NOTES (PERSISTED) ---
 function renderArchive() {
     const container = document.getElementById('archive-container');
     if (!container) return;
@@ -188,22 +277,13 @@ function clearFullArchive() {
     }
 }
 
-// --- 6. EDIT & ARCHIVE HABIT ---
-function openEditModal() {
-    const goal = goals.find(g => g.id === currentGoalId);
-    document.getElementById('editGoalTitle').value = goal.title;
-    document.getElementById('editGoalFreq').value = goal.freq;
-    openModal('edit-modal');
-}
-
-function saveGoalEdit() {
-    const goal = goals.find(g => g.id === currentGoalId);
-    goal.title = document.getElementById('editGoalTitle').value;
-    goal.freq = document.getElementById('editGoalFreq').value;
-    goal.cycles = []; 
-    localStorage.setItem('consisto_data', JSON.stringify(goals));
-    closeModal('edit-modal');
-    showPage('page-dashboard');
+function deleteGoal(id, e) {
+    e.stopPropagation();
+    if(confirm("Delete objective?")) {
+        goals = goals.filter(g => g.id !== id);
+        localStorage.setItem('consisto_data', JSON.stringify(goals));
+        renderDashboard();
+    }
 }
 
 function archiveCurrentGoal() {
@@ -215,7 +295,35 @@ function archiveCurrentGoal() {
     showPage('page-dashboard');
 }
 
-// --- 7. TO-DO & NOTES ---
+function openEditModal() {
+    const goal = goals.find(g => g.id === currentGoalId);
+    document.getElementById('editGoalTitle').value = goal.title;
+    document.getElementById('editGoalFreq').value = goal.freq;
+    if(goal.freq === 'custom') {
+        document.getElementById('editCustomDaysContainer').style.display = 'block';
+        document.getElementById('editCustomDays').value = goal.customDays;
+    }
+    openModal('edit-modal');
+}
+
+function saveGoalEdit() {
+    const goal = goals.find(g => g.id === currentGoalId);
+    goal.title = document.getElementById('editGoalTitle').value;
+    const newFreq = document.getElementById('editGoalFreq').value;
+    
+    if (newFreq === 'custom') {
+        goal.customDays = parseInt(document.getElementById('editCustomDays').value);
+    } else {
+        goal.customDays = null;
+    }
+    
+    goal.freq = newFreq;
+    goal.cycles = []; // Reset cycles to update grid
+    localStorage.setItem('consisto_data', JSON.stringify(goals));
+    closeModal('edit-modal');
+    showPage('page-dashboard');
+}
+
 function addTodo() {
     const input = document.getElementById('todoInput');
     if (!input.value.trim()) return;
@@ -306,8 +414,11 @@ function deleteNote(id) {
     renderNotesList();
 }
 
-// --- 8. UTILITIES ---
-function generateLabels(freq, cycleId) {
+// --- 7. UTILITIES ---
+function generateLabels(freq, cycleId, customDays) {
+    if (freq === 'custom' && customDays) {
+        return Array.from({ length: customDays }, (_, i) => i + 1);
+    }
     if (freq === 'daily') {
         const parts = cycleId.split('-');
         const daysInMonth = new Date(parts[1], parts[2], 0).getDate();
@@ -328,80 +439,29 @@ function isToday(freq, label) {
     return false;
 }
 
-function toggleCycleCheck(cycleId, index) {
-    const goal = goals.find(g => g.id === currentGoalId);
-    const cycle = goal.cycles.find(c => c.id === cycleId);
-    cycle.checks[index] = !cycle.checks[index];
-    localStorage.setItem('consisto_data', JSON.stringify(goals));
-}
-
-function addGoal() {
-    const title = document.getElementById('goalTitle').value.trim();
-    const freq = document.getElementById('goalFreq').value;
-    if(!title) return;
-    goals.push({ id: Date.now(), title, freq, cycles: [] });
-    checkAllCycles();
-    closeModal('task-modal');
-    renderDashboard();
-}
-
-function deleteGoal(id, e) {
-    e.stopPropagation();
-    if(confirm("Delete objective?")) {
-        goals = goals.filter(g => g.id !== id);
-        localStorage.setItem('consisto_data', JSON.stringify(goals));
-        renderDashboard();
-    }
-}
-
-function toggleTheme() {
-    const body = document.body;
-    const next = body.getAttribute('data-theme') === 'blue' ? 'pink' : 'blue';
-    body.setAttribute('data-theme', next);
-    document.getElementById('themeBtn').innerText = next === 'blue' ? '🌙 Dark Rose' : '🌌 Deep Space';
-}
-
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-window.onload = () => { 
-    sanitizeHistory(); 
-    checkAllCycles(); 
-    renderDashboard(); 
-    renderArchive(); 
-};
 // --- SMART INSTALL LOGIC ---
 let deferredPrompt;
 const installBtn = document.getElementById('installAppBtn');
 
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing on mobile
     e.preventDefault();
-    // Stash the event so it can be triggered later.
     deferredPrompt = e;
-    // Update UI notify the user they can install the PWA
-    if (installBtn) {
-        installBtn.style.display = 'inline-block';
-    }
+    if (installBtn) installBtn.style.display = 'inline-block';
 });
 
 if (installBtn) {
     installBtn.addEventListener('click', async () => {
         if (!deferredPrompt) return;
-        // Show the install prompt
         deferredPrompt.prompt();
-        // Wait for the user to respond to the prompt
         const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        // We've used the prompt, and can't use it again, throw it away
         deferredPrompt = null;
-        // Hide the button
         installBtn.style.display = 'none';
     });
 }
 
-// Hide button if app is successfully installed
-window.addEventListener('appinstalled', (log) => {
-    console.log('Consisto Pro was installed.');
+window.addEventListener('appinstalled', () => {
     if (installBtn) installBtn.style.display = 'none';
 });
