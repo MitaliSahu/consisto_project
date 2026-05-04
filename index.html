@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consisto Pro</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+    
+    <!-- Added Cache Busters (?v=2) to force immediate updates -->
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="manifest" href="manifest.json?v=2">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body data-theme="blue" data-mode="light">
@@ -15,6 +18,7 @@
         <button onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle Dark/Light">🌓</button>
         <button onclick="toggleTheme()" id="themeBtn" title="Switch Theme Color">🌌 Deep Space</button>
         <button id="installAppBtn" style="display:none;" class="pwa-btn">📲 Install</button>
+        <!-- Logout button remains persistent via logic -->
         <button onclick="handleLogout()" id="logoutBtn" style="display:none;" class="logout-btn" title="Logout">🚪</button>
     </div>
 
@@ -109,6 +113,7 @@
             <div class="detail-header">
                 <div>
                     <h1 id="detail-title">Goal</h1>
+                    <!-- Visual Progress Bar -->
                     <div class="progress-bar-container">
                         <div id="detail-progress-fill" class="progress-fill"></div>
                     </div>
@@ -171,6 +176,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Added Cache Buster (?v=2) to script reference -->
+    <script src="script.js?v=2"></script>
 </body>
 </html>
