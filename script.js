@@ -1,3 +1,5 @@
+const API_BASE_URL = "http://127.0.0.1:8000/api";
+
 // --- INITIALIZATION ---
 let goals = JSON.parse(localStorage.getItem('consisto_data')) || [];
 let archivedGoals = JSON.parse(localStorage.getItem('consisto_archive')) || [];
@@ -54,17 +56,46 @@ function sanitizeHistory() {
         goal.cycles = goal.cycles.filter(c => c.id === latestId);
         if (goal.cycles.length !== originalCount) changed = true;
     });
-    if (changed) localStorage.setItem('consisto_data', JSON.stringify(goals));
+    if (changed) {
+        localStorage.setItem('consisto_data', JSON.stringify(goals));
+        syncDataWithCloud();
+    }
 }
 
 // --- 3. AUTH, SESSION & NAVIGATION ---
-function handleAuth() {
+async function handleAuth() {
     const userField = document.getElementById('username');
-    if (userField && userField.value.trim() !== "") {
-        localStorage.setItem('consisto_session', userField.value.trim()); // Save Session
+    const passField = document.getElementById('passcode');
+    const username = userField?.value.trim();
+    const passcode = passField?.value;
+    
+    if (!username || !passcode) return alert("Enter both Username and Passcode.");
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, passcode })
+        });
+
+        if (!res.ok) throw new Error((await res.json()).detail || "Auth failed.");
+        const result = await res.json();
+        
+        localStorage.setItem('consisto_session', result.username);
+        goals = result.data.goals || [];
+        archivedGoals = result.data.archived_goals || [];
+        todos = result.data.todos || [];
+        standaloneNotes = result.data.standalone_notes || [];
+
+        // Seed current session's cache state
+        localStorage.setItem('consisto_data', JSON.stringify(goals));
+        localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
+        localStorage.setItem('consisto_todos', JSON.stringify(todos));
+        localStorage.setItem('consisto_standalone_notes', JSON.stringify(standaloneNotes));
+
         showPage('page-dashboard');
-    } else {
-        alert("Please enter a Username to access the dashboard.");
+    } catch (err) {
+        alert(err.message);
     }
 }
 
@@ -120,14 +151,19 @@ function toggleCustomFreqInput(selectId, containerId) {
 
 function checkAllCycles() {
     const now = new Date();
+    let updated = false;
     goals.forEach(goal => {
         if (!goal.cycles) goal.cycles = [];
         const latestId = generateCycleId(goal.freq, now);
         if (!goal.cycles.some(c => c.id === latestId)) {
             goal.cycles.unshift({ id: latestId, checks: {} });
+            updated = true;
         }
     });
-    localStorage.setItem('consisto_data', JSON.stringify(goals));
+    if (updated) {
+        localStorage.setItem('consisto_data', JSON.stringify(goals));
+        syncDataWithCloud();
+    }
 }
 
 function addGoal() {
@@ -148,6 +184,7 @@ function addGoal() {
     checkAllCycles();
     closeModal('task-modal');
     renderDashboard();
+    syncDataWithCloud();
 }
 
 function renderDashboard() {
@@ -239,6 +276,7 @@ function toggleCycleCheck(cycleId, index) {
     cycle.checks[index] = !cycle.checks[index];
     localStorage.setItem('consisto_data', JSON.stringify(goals));
     updateProgress(goal);
+    syncDataWithCloud();
 }
 
 // --- 6. ARCHIVE, TO-DO & NOTES (PERSISTED) ---
@@ -266,6 +304,7 @@ function deleteArchiveItem(index) {
         archivedGoals.splice(index, 1);
         localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
         renderArchive();
+        syncDataWithCloud();
     }
 }
 
@@ -274,6 +313,7 @@ function clearFullArchive() {
         archivedGoals = [];
         localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
         renderArchive();
+        syncDataWithCloud();
     }
 }
 
@@ -283,6 +323,7 @@ function deleteGoal(id, e) {
         goals = goals.filter(g => g.id !== id);
         localStorage.setItem('consisto_data', JSON.stringify(goals));
         renderDashboard();
+        syncDataWithCloud();
     }
 }
 
@@ -293,6 +334,7 @@ function archiveCurrentGoal() {
     localStorage.setItem('consisto_data', JSON.stringify(goals));
     localStorage.setItem('consisto_archive', JSON.stringify(archivedGoals));
     showPage('page-dashboard');
+    syncDataWithCloud();
 }
 
 function openEditModal() {
@@ -322,6 +364,7 @@ function saveGoalEdit() {
     localStorage.setItem('consisto_data', JSON.stringify(goals));
     closeModal('edit-modal');
     showPage('page-dashboard');
+    syncDataWithCloud();
 }
 
 function addTodo() {
@@ -331,6 +374,7 @@ function addTodo() {
     input.value = '';
     localStorage.setItem('consisto_todos', JSON.stringify(todos));
     renderTodoList();
+    syncDataWithCloud();
 }
 
 function renderTodoList() {
@@ -356,12 +400,14 @@ function toggleTodo(id) {
     todo.completed = !todo.completed;
     localStorage.setItem('consisto_todos', JSON.stringify(todos));
     renderTodoList();
+    syncDataWithCloud();
 }
 
 function deleteTodo(id) {
     todos = todos.filter(t => t.id !== id);
     localStorage.setItem('consisto_todos', JSON.stringify(todos));
     renderTodoList();
+    syncDataWithCloud();
 }
 
 function createNewNote() {
@@ -372,6 +418,7 @@ function createNewNote() {
     closeModal('new-note-modal');
     document.getElementById('newNoteTitle').value = "";
     renderNotesList();
+    syncDataWithCloud();
 }
 
 function renderNotesList() {
@@ -406,12 +453,14 @@ function saveNoteChanges() {
     note.content = document.getElementById('viewNoteContent').value;
     localStorage.setItem('consisto_standalone_notes', JSON.stringify(standaloneNotes));
     alert("Note Saved!");
+    syncDataWithCloud();
 }
 
 function deleteNote(id) {
     standaloneNotes = standaloneNotes.filter(n => n.id !== id);
     localStorage.setItem('consisto_standalone_notes', JSON.stringify(standaloneNotes));
     renderNotesList();
+    syncDataWithCloud();
 }
 
 // --- 7. UTILITIES ---
@@ -465,3 +514,26 @@ if (installBtn) {
 window.addEventListener('appinstalled', () => {
     if (installBtn) installBtn.style.display = 'none';
 });
+
+// --- CLOUD STORAGE SYNC LOGIC ---
+async function syncDataWithCloud() {
+    const currentUsername = localStorage.getItem('consisto_session');
+    if (!currentUsername) return;
+
+    try {
+        await fetch(`${API_BASE_URL}/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: currentUsername,
+                goals: goals,
+                archived_goals: archivedGoals,
+                todos: todos,
+                standalone_notes: standaloneNotes
+            })
+        });
+        console.log("Cloud database synchronized successfully.");
+    } catch (error) {
+        console.error("Cloud sync failed:", error);
+    }
+}
